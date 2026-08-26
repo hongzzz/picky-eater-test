@@ -262,8 +262,7 @@ function showCard() {
   const score = calcScore(answers);
   const title = getTitle(score);
   const comment = getComment(score);
-  const img = generateCard(score, title, comment);
-  document.getElementById('card-img').src = img;
+  generateCardBlob(score, title, comment);
   document.getElementById('card-modal').classList.add('show');
 }
 
@@ -271,11 +270,27 @@ function closeModal() {
   document.getElementById('card-modal').classList.remove('show');
 }
 
-function generateCard(score, title, comment) {
-  const W = 640, H = 900;
+// 用 Blob URL 而非 base64 dataURL：安卓微信长按 dataURL 图片无法保存
+function generateCardBlob(score, title, comment) {
   const c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const ctx = c.getContext('2d');
+  c.width = 640; c.height = 900;
+  drawCard(c.getContext('2d'), score, title, comment);
+  const img = document.getElementById('card-img');
+  if (c.toBlob) {
+    c.toBlob(function (blob) {
+      if (!blob) { img.src = c.toDataURL('image/png'); return; }
+      if (img._objUrl) URL.revokeObjectURL(img._objUrl);
+      img._objUrl = URL.createObjectURL(blob);
+      img.src = img._objUrl;
+    }, 'image/png');
+  } else {
+    img.src = c.toDataURL('image/png');
+  }
+}
+
+function drawCard(ctx, score, title, comment) {
+  const W = 640, H = 900;
+  ctx.textBaseline = 'middle';  // 统一基线，避免 emoji/文字错位
 
   // 背景渐变
   const g = ctx.createLinearGradient(0, 0, 0, H);
@@ -292,19 +307,19 @@ function generateCard(score, title, comment) {
   ctx.beginPath(); ctx.arc(60, 780, 100, 0, Math.PI * 2); ctx.fill();
   ctx.globalAlpha = 1;
 
-  // 标题
   ctx.fillStyle = '#fff';
   ctx.textAlign = 'center';
-  ctx.font = 'bold 52px sans-serif';
+
+  // 标题
+  ctx.font = 'bold 52px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillText('🍽️ 挑食测试器', W / 2, 110);
 
-  // 称号 emoji
-  ctx.font = '110px sans-serif';
-  ctx.fillText(title.emoji, W / 2, 290);
+  // 称号 emoji（居中）
+  ctx.font = '110px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+  ctx.fillText(title.emoji, W / 2, 280);
 
   // 称号名
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 64px sans-serif';
+  ctx.font = 'bold 64px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillText(title.name, W / 2, 400);
 
   // 指数圆环
@@ -321,24 +336,22 @@ function generateCard(score, title, comment) {
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 72px sans-serif';
   ctx.fillText(score, cx, cy + 26);
-  ctx.font = '22px sans-serif';
+  ctx.font = '22px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillText('挑食指数', cx, cy + 60);
 
-  // 一句话点评
+  // 一句话点评（最多 3 行，居中）
   ctx.fillStyle = 'rgba(255,255,255,.95)';
-  ctx.font = '28px sans-serif';
+  ctx.font = '28px "PingFang SC", "Microsoft YaHei", sans-serif';
   const lines = wrapText(ctx, comment, W - 100, 28);
   const lineStart = 690;
-  lines.slice(0, 3).forEach((line, i) => {
-    ctx.fillText(line, W / 2, lineStart + i * 38);
+  lines.slice(0, 3).forEach(function (line, i) {
+    ctx.fillText(line, W / 2, lineStart + i * 40);
   });
 
   // 底部
-  ctx.font = '20px sans-serif';
+  ctx.font = '20px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,.75)';
   ctx.fillText('你也来测测你的挑食指数 →', W / 2, H - 60);
-
-  return c.toDataURL('image/png');
 }
 
 function wrapText(ctx, text, maxWidth, fontSize) {
