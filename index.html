@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FF6B35">
+<title>挑食测试器｜测测你的挑食指数</title>
+<meta name="description" content="30 道题测出你的挑食指数，看看你是干饭机器还是挑食之王！">
+<!-- 微信内分享卡片 -->
+<meta property="og:title" content="挑食测试器｜测测你的挑食指数">
+<meta property="og:description" content="30 道题测出你的挑食指数，看看你是干饭机器还是挑食之王！">
+<meta property="og:type" content="website">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, #FF6B35 0%, #FF9A5A 30%, #FFD93D 100%);
+    color: #333;
+    overflow: hidden;
+    user-select: none;
+  }
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ===== 开场页 ===== */
+  .screen { display: none; flex: 1; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+  .screen.active { display: flex; }
+  .hero-emoji { font-size: 80px; animation: bounce 2s infinite; }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  h1 { font-size: 34px; font-weight: 800; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.15); margin: 16px 0 8px; }
+  .subtitle { font-size: 15px; color: rgba(255,255,255,.95); margin-bottom: 8px; }
+  .start-btn {
+    margin-top: 32px; padding: 16px 56px; border: none; border-radius: 50px;
+    background: #fff; color: #FF6B35; font-size: 18px; font-weight: 700;
+    box-shadow: 0 8px 24px rgba(0,0,0,.15); cursor: pointer; transition: transform .15s;
+  }
+  .start-btn:active { transform: scale(.95); }
+  .hint { margin-top: 20px; font-size: 12px; color: rgba(255,255,255,.8); }
+
+  /* ===== 答题页 ===== */
+  .quiz { padding: 20px; justify-content: flex-start; }
+  .progress-wrap { width: 100%; margin-top: 8px; }
+  .progress-text { color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; text-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  .progress-bar { width: 100%; height: 10px; background: rgba(255,255,255,.35); border-radius: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0%; background: #fff; border-radius: 10px; transition: width .3s ease; }
+  .question-card {
+    width: 100%; background: #fff; border-radius: 20px; padding: 28px 20px;
+    margin-top: 28px; box-shadow: 0 12px 32px rgba(0,0,0,.12);
+    animation: slideIn .35s ease;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+  .q-emoji { font-size: 56px; }
+  .q-name { font-size: 24px; font-weight: 800; margin-top: 10px; }
+  .q-note { font-size: 13px; color: #999; margin-top: 6px; }
+  .q-num { font-size: 12px; color: #bbb; margin-top: 12px; }
+  .options { width: 100%; margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    padding: 14px 18px; border-radius: 14px; border: 2px solid #eee; background: #fafafa;
+    font-size: 16px; font-weight: 600; cursor: pointer; transition: all .15s; text-align: center;
+  }
+  .opt:active { transform: scale(.97); }
+  .opt.eat { color: #2e7d32; } .opt.eat:active { background: #e8f5e9; border-color: #2e7d32; }
+  .opt.meh { color: #f57c00; } .opt.meh:active { background: #fff3e0; border-color: #f57c00; }
+  .opt.no  { color: #c62828; } .opt.no:active  { background: #ffebee; border-color: #c62828; }
+
+  /* ===== 结果页 ===== */
+  .result { padding: 20px; }
+  .result-card {
+    width: 100%; background: #fff; border-radius: 24px; padding: 24px 20px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.15); text-align: center;
+  }
+  .result-emoji { font-size: 64px; }
+  .result-title { font-size: 28px; font-weight: 800; margin-top: 8px; color: #FF6B35; }
+  .result-tag { display: inline-block; margin-top: 8px; padding: 4px 14px; border-radius: 20px; background: #fff3e0; color: #f57c00; font-size: 13px; font-weight: 600; }
+  .score-wrap { margin-top: 20px; position: relative; width: 180px; height: 180px; margin-left: auto; margin-right: auto; }
+  .score-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 42px; font-weight: 800; color: #333; }
+  .score-label { font-size: 12px; color: #999; position: absolute; top: 68%; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+  .result-desc { margin-top: 18px; font-size: 14px; color: #666; line-height: 1.6; }
+  .result-comment { margin-top: 12px; font-size: 13px; color: #999; font-style: italic; }
+  .share-tip { margin-top: 16px; font-size: 12px; color: #aaa; }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 20px; width: 100%; }
+  .btn {
+    flex: 1; padding: 14px 0; border: none; border-radius: 50px; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: transform .15s;
+  }
+  .btn:active { transform: scale(.96); }
+  .btn-primary { background: #FF6B35; color: #fff; box-shadow: 0 6px 18px rgba(255,107,53,.35); }
+  .btn-ghost { background: #fff; color: #FF6B35; border: 2px solid #FF6B35; }
+  .btn-share { background: #07c160; color: #fff; box-shadow: 0 6px 18px rgba(7,193,96,.3); }
+
+  /* ===== 分享卡片弹窗 ===== */
+  .modal-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; align-items: center; justify-content: center; }
+  .modal-mask.show { display: flex; }
+  .modal { background: #fff; border-radius: 20px; padding: 24px; width: 90%; max-width: 400px; text-align: center; }
+  .modal img { width: 100%; border-radius: 12px; }
+  .modal-tip { margin-top: 12px; font-size: 13px; color: #666; }
+  .modal-close { margin-top: 14px; width: 100%; padding: 12px; border: none; border-radius: 12px; background: #f5f5f5; font-size: 15px; font-weight: 600; cursor: pointer; }
+
+  .footer { padding: 14px; text-align: center; font-size: 11px; color: rgba(255,255,255,.7); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 开场页 -->
+  <div class="screen active" id="screen-home">
+    <div class="hero-emoji">🍽️</div>
+    <h1>挑食测试器</h1>
+    <p class="subtitle">30 道题，测出你的挑食指数</p>
+    <p class="subtitle">看看你是「干饭机器」还是「挑食之王」</p>
+    <button class="start-btn" onclick="startQuiz()">开始测试</button>
+    <p class="hint">⚠️ 认真作答，结果可能会扎心</p>
+  </div>
+
+  <!-- 答题页 -->
+  <div class="screen quiz" id="screen-quiz">
+    <div class="progress-wrap">
+      <div class="progress-text" id="progress-text">1 / 30</div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <div class="question-card" id="question-card">
+      <div class="q-emoji" id="q-emoji">🌿</div>
+      <div class="q-name" id="q-name">香菜</div>
+      <div class="q-note" id="q-note">爱者爱死，恨者恨死</div>
+      <div class="q-num" id="q-num">第 1 题 / 共 30 题</div>
+    </div>
+    <div class="options">
+      <button class="opt eat" onclick="answer(0)">😋 吃</button>
+      <button class="opt meh" onclick="answer(1)">🤔 看情况</button>
+      <button class="opt no" onclick="answer(2)">🤢 不吃</button>
+    </div>
+  </div>
+
+  <!-- 结果页 -->
+  <div class="screen result" id="screen-result">
+    <div class="result-card" id="result-card">
+      <div class="result-emoji" id="r-emoji">👑</div>
+      <div class="result-title" id="r-title">挑食之王</div>
+      <div class="result-tag" id="r-tag">绝食级选手</div>
+      <div class="score-wrap">
+        <svg width="180" height="180" viewBox="0 0 180 180">
+          <circle cx="90" cy="90" r="76" fill="none" stroke="#f0f0f0" stroke-width="12"/>
+          <circle id="score-ring" cx="90" cy="90" r="76" fill="none" stroke="#FF6B35" stroke-width="12"
+                  stroke-linecap="round" stroke-dasharray="477.5" stroke-dashoffset="477.5"
+                  transform="rotate(-90 90 90)"/>
+        </svg>
+        <div class="score-num" id="r-score">0</div>
+        <div class="score-label">挑食指数</div>
+      </div>
+      <div class="result-desc" id="r-desc">你妈已经放弃你了</div>
+      <div class="result-comment" id="r-comment">挑食不是你的错</div>
+      <p class="share-tip">👆 长按下方卡片可保存分享</p>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="showCard()">🖼️ 生成分享卡片</button>
+      <button class="btn btn-ghost" onclick="restart()">🔄 再测一次</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-share" onclick="shareWechat()">📤 分享给好友</button>
+    </div>
+  </div>
+
+  <div class="footer">挑食测试器 · 仅供娱乐 · 认真你就输了</div>
+</div>
+
+<!-- 分享卡片弹窗 -->
+<div class="modal-mask" id="card-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <img id="card-img" alt="分享卡片">
+    <p class="modal-tip">💡 长按图片保存，或截图后分享到朋友圈</p>
+    <button class="modal-close" onclick="closeModal()">关 闭</button>
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script>
+let answers = [];
+let current = 0;
+
+function startQuiz() {
+  answers = []; current = 0;
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[current];
+  document.getElementById('q-emoji').textContent = q.emoji;
+  document.getElementById('q-name').textContent = q.name;
+  document.getElementById('q-note').textContent = q.note;
+  document.getElementById('q-num').textContent = `第 ${current + 1} 题 / 共 ${QUESTIONS.length} 题`;
+  document.getElementById('progress-text').textContent = `${current + 1} / ${QUESTIONS.length}`;
+  document.getElementById('progress-fill').style.width = `${(current / QUESTIONS.length) * 100}%`;
+
+  const card = document.getElementById('question-card');
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = 'slideIn .35s ease';
+}
+
+function answer(val) {
+  answers.push(val);
+  current++;
+  if (current < QUESTIONS.length) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  const score = calcScore(answers);
+  const title = getTitle(score);
+  const comment = getComment(score);
+
+  document.getElementById('r-emoji').textContent = title.emoji;
+  document.getElementById('r-title').textContent = title.name;
+  document.getElementById('r-tag').textContent = title.tag;
+  document.getElementById('r-desc').textContent = title.desc;
+  document.getElementById('r-comment').textContent = '「' + comment + '」';
+  document.getElementById('r-score').textContent = score;
+
+  // 动画：数字滚动 + 圆环
+  const ring = document.getElementById('score-ring');
+  const circumference = 477.5;
+  ring.style.transition = 'stroke-dashoffset 1.2s ease';
+  setTimeout(() => {
+    ring.style.strokeDashoffset = circumference * (1 - score / 100);
+  }, 100);
+
+  let cur = 0;
+  const target = score;
+  const step = Math.max(1, Math.ceil(target / 40));
+  const timer = setInterval(() => {
+    cur = Math.min(target, cur + step);
+    document.getElementById('r-score').textContent = cur;
+    if (cur >= target) clearInterval(timer);
+  }, 30);
+
+  showScreen('screen-result');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function restart() {
+  startQuiz();
+}
+
+/* ===== 分享卡片（Canvas 生成） ===== */
+function showCard() {
+  const score = calcScore(answers);
+  const title = getTitle(score);
+  const comment = getComment(score);
+  const img = generateCard(score, title, comment);
+  document.getElementById('card-img').src = img;
+  document.getElementById('card-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('card-modal').classList.remove('show');
+}
+
+function generateCard(score, title, comment) {
+  const W = 640, H = 900;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+
+  // 背景渐变
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#FF6B35');
+  g.addColorStop(0.6, '#FF9A5A');
+  g.addColorStop(1, '#FFD93D');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // 装饰圆
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(560, 90, 130, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(60, 780, 100, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // 标题
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 52px sans-serif';
+  ctx.fillText('🍽️ 挑食测试器', W / 2, 110);
+
+  // 称号 emoji
+  ctx.font = '110px sans-serif';
+  ctx.fillText(title.emoji, W / 2, 290);
+
+  // 称号名
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 64px sans-serif';
+  ctx.fillText(title.name, W / 2, 400);
+
+  // 指数圆环
+  const cx = W / 2, cy = 520, r = 110;
+  ctx.lineWidth = 18;
+  ctx.strokeStyle = 'rgba(255,255,255,.3)';
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = '#fff';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (score / 100) * Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 72px sans-serif';
+  ctx.fillText(score, cx, cy + 26);
+  ctx.font = '22px sans-serif';
+  ctx.fillText('挑食指数', cx, cy + 60);
+
+  // 一句话点评
+  ctx.fillStyle = 'rgba(255,255,255,.95)';
+  ctx.font = '28px sans-serif';
+  const lines = wrapText(ctx, comment, W - 100, 28);
+  const lineStart = 690;
+  lines.slice(0, 3).forEach((line, i) => {
+    ctx.fillText(line, W / 2, lineStart + i * 38);
+  });
+
+  // 底部
+  ctx.font = '20px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,.75)';
+  ctx.fillText('你也来测测你的挑食指数 →', W / 2, H - 60);
+
+  return c.toDataURL('image/png');
+}
+
+function wrapText(ctx, text, maxWidth, fontSize) {
+  const chars = text.split('');
+  const lines = [];
+  let line = '';
+  for (const ch of chars) {
+    const test = line + ch;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = ch;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+/* 微信分享 */
+function shareWechat() {
+  // 微信内置浏览器：提示用户右上角分享
+  if (/MicroMessenger/i.test(navigator.userAgent)) {
+    alert('点击右上角「···」→ 分享给好友或朋友圈 🎉');
+  } else {
+    // 非微信环境：复制链接
+    const url = location.href;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => alert('链接已复制，快去分享吧！'));
+    } else {
+      prompt('复制链接分享：', url);
+    }
+  }
+}
+</script>
+</body>
+</html>
